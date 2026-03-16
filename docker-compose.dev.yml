@@ -1,0 +1,28 @@
+services:
+  open-webui-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USE_OLLAMA: "false"
+        USE_CUDA: "false"
+    image: coach-on:dev
+    container_name: coach-on-dev
+    volumes:
+      - open-webui-dev-data:/app/backend/data
+    ports:
+      - "8081:8080"
+    environment:
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
+      - WEBUI_NAME=Coach-On (Dev)
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "1.5"
+
+volumes:
+  open-webui-dev-data: {}
