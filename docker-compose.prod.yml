@@ -1,12 +1,6 @@
 services:
   open-webui-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        USE_OLLAMA: "false"
-        USE_CUDA: "false"
-    image: coach-on:prod
+    image: ghcr.io/open-webui/open-webui:main
     container_name: coach-on-prod
     volumes:
       - open-webui-prod-data:/app/backend/data
