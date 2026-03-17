@@ -4,14 +4,22 @@ services:
     container_name: coach-on-dev
     volumes:
       - open-webui-dev-data:/app/backend/data
-    ports:
-      - "8081:8080"
     environment:
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
       - "WEBUI_NAME=Coach-On Dev"
+      - VIRTUAL_HOST=dev.coach-on.andrami.pro
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=dev.coach-on.andrami.pro
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
+    networks:
+      - nginx_proxy
+      - default
+
+networks:
+  nginx_proxy:
+    external: true
 
 volumes:
   open-webui-dev-data: {}
