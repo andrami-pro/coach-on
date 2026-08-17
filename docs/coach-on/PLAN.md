@@ -235,7 +235,23 @@ no figure en `~/.ssh/config`. No hace falta túnel.
     > en cada rebase.
 11. `git push --force-with-lease origin dev`.
 
-**Bloque C — Ensayo en el slot prod (reversible) · 🟡 automatizable hecho, falta verificación humana**
+**Bloque C — Ensayo en el slot prod (reversible) · ✅ completo, verificación humana incluida**
+
+> **Verificación humana del paso 14, hecha por Andres el 2026-08-17. Los cuatro puntos en verde:**
+>
+> | Comprobación | Resultado |
+> |---|---|
+> | Login | Entra. La migración `f0bd01a18a3d`, índice único de emails normalizados, no rompió la cuenta |
+> | Los 8 chats de 0.8.10 | Presentes y legibles |
+> | Conversación nueva con `gemini-3.1-flash-lite` | Responde |
+> | **Tool calling nativo** | **Funciona.** La interfaz muestra `Explored get_secret_number` y el modelo devuelve el valor de la herramienta, no uno inventado |
+>
+> **El riesgo «Alto» del §1.3 queda retirado**, y comprobado en ejecución en vez de deducido: con
+> ese modelo no hace falta el modo Legacy. Importa más allá de esta actualización, porque es el
+> mismo camino de código del que dependerá el tool server de la bóveda en la Fase 2.
+>
+> La Tool de prueba se insertó directamente en la base del ensayo, que es desechable. **No existe
+> en dev** y no hay que limpiarla de ningún sitio real.
 
 > **Resultado del ensayo del 2026-08-17.** v0.11.0 arrancó sobre una copia de los datos reales y
 > **aplicó exactamente 21 migraciones**, de `b2c3d4e5f6a7` a `f0bd01a18a3d`, sin un solo error en
