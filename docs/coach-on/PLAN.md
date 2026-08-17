@@ -1,7 +1,8 @@
 # coach-on — Plan de actualización y arquitectura
 
-**Estado: Fase 1 en curso.** Bloque A completado y Bloque B casi completado el 2026-08-17.
-Bloques C, D y E pendientes. El Bloque D no se ha ejecutado y sigue siendo el punto de no retorno.
+**Estado: Fase 1 completada el 2026-08-17**, salvo el cierre del Bloque E. Bloques A, B, C y D
+ejecutados. **dev corre v0.11.0** con sus datos intactos. La Fase 2 —la sección 3 en adelante— no
+se ha empezado.
 
 > **Este documento se verificó contra la realidad el 2026-08-17 y varias afirmaciones eran
 > falsas.** Las correcciones están marcadas en línea. La más grave: el comando de copia de
@@ -282,7 +283,20 @@ no figure en `~/.ssh/config`. No hace falta túnel.
 > `coach-on.andrami.pro`. Es la primera emisión de ese nombre: si el DNS no apunta al VPS, falla
 > ahí. Comprobarlo antes de dar por roto el ensayo.
 
-**Bloque D — 🚨 PUNTO DE NO RETORNO · ⬜ NO EJECUTADO**
+**Bloque D — 🚨 PUNTO DE NO RETORNO · ✅ EJECUTADO el 2026-08-17, con confirmación explícita de Andres**
+
+> **Resultado.** dev corre **v0.11.0**, `healthy`, sin un error en los logs. Alembic aplicó las
+> mismas 21 migraciones que el ensayo, en el mismo orden, de `b2c3d4e5f6a7` a `f0bd01a18a3d`.
+> Después: `integrity_check` = `ok`, **1 usuario y 8 chats intactos**,
+> `https://dev.coach-on.andrami.pro/api/version` devuelve `0.11.0` y el certificado sigue válido.
+>
+> Antes de tocar nada se tomó una **segunda copia** con dev parado —
+> `/root/coach-on-backups/coach-on-dev-data-2026-08-17-preD.tar.gz`, verificada con
+> `integrity_check` = ok, 1 usuario y 8 chats— y se guardó el compose anterior en
+> `docker-compose.dev.yml.pre-upgrade`. La primera copia sigue en `~/backups/` del portátil.
+>
+> El compose del stack 26 se sustituyó por el del repo, así que **el despliegue y git ya no
+> divergen**. Conviene abrir Portainer una vez y comprobar que su interfaz muestra `v0.11.0`.
 
 > **AVISO.** El paso 16 aplica 21 migraciones sobre la base real. Upstream declara en seis releases que **el downgrade no está soportado**. La única vuelta atrás es restaurar el `.tar.gz` del paso 4 y perder lo escrito después.
 >
@@ -300,6 +314,23 @@ no figure en `~/.ssh/config`. No hace falta túnel.
     > `WEBUI_SECRET_KEY` que ya está en su `stack.env`.
 17. Repetir la verificación del paso 14 sobre dev.
 18. Repasar la configuración que el salto deja a medias: modo de tool calling por modelo, `ENABLE_AUTOMATIONS` y límites, y las secciones de admin que se movieron (0.10.0 sacó autenticación a su página; 0.11.0 metió admin dentro de ajustes).
+
+    > **Estado tras la actualización, leído de la tabla `config`:**
+    >
+    > | Clave | Valor | Qué significa |
+    > |---|---|---|
+    > | `automations.enable` | `true` | El cron nativo del revisor mensual (§3.2) ya está disponible |
+    > | `automations.max_count` | vacío | Sin límite explícito. Ponerle uno antes de usarlo en serio |
+    > | `automations.min_interval` | vacío | Igual |
+    > | `automations.auth_token_expires_in` | `1h` | Por defecto |
+    > | `tool_server.connections` | `[]` | Vacío, como toca: el `coach-on-vault-api` es Fase 2 |
+    > | `openai.enable` | `true` | OpenRouter conectado |
+    >
+    > Tool calling se deja en nativo: el ensayo demostró que funciona con el modelo en uso, así que
+    > no hace falta tocar el modo Legacy.
+    >
+    > **Pendiente de la §5.4:** quitar de la configuración `x-ai/grok-4.20-multi-agent-beta`, que ya
+    > no existe en OpenRouter.
 
 **Bloque E — Cierre**
 
