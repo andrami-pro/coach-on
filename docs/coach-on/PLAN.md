@@ -334,8 +334,43 @@ no figure en `~/.ssh/config`. No hace falta túnel.
 
 **Bloque E — Cierre**
 
-19. Decidir qué hacemos con el slot prod: canario permanente o apagado.
+19. ~~Decidir qué hacemos con el slot prod~~ — ✅ **se queda como banco de pruebas permanente**,
+    decisión de Andres el 2026-08-17. Sirve para dos cosas: ensayar la próxima actualización antes
+    de tocar dev, y depurar la Fase 2 —tool server, Models, Automations— contra datos parecidos a
+    los reales sin arriesgar los de verdad.
+
+    | | |
+    |---|---|
+    | Contenedor | `coach-on-prod`, imagen `v0.11.0` |
+    | Volumen | `coach-on-prod_open-webui-prod-data` |
+    | Compose | `/root/coach-on-rehearsal/docker-compose.yml` del VPS, con su `.env` propio |
+    | Acceso | `ssh -N -L 8081:127.0.0.1:8081 root@145.223.34.108` y `http://localhost:8081` |
+    | Publicado | **No.** Sin `VIRTUAL_HOST`, sin certificado, fuera de `nginx_proxy` |
+
+    Dos cosas que recordar: sus datos son una **copia de los de dev a 2026-08-17**, así que va
+    quedando obsoleto —para refrescarlo, volcar dev otra vez encima; y como no está en Portainer,
+    no aparece en su interfaz. Lleva `restart: "no"`, o sea que **no sobrevive a un reinicio del
+    VPS**: hay que levantarlo a mano con `docker start coach-on-prod`.
+
 20. Anotar el procedimiento aquí. La segunda actualización debería ser: leer el CHANGELOG, `git rebase v0.X.Y`, ensayar en prod, aplicar en dev.
+
+    **Procedimiento para la próxima actualización**, ya rodado una vez:
+
+    1. Leer las secciones `### Changed` del CHANGELOG entre la versión actual y la nueva.
+    2. Verificar que el tag existe **en el registro**, no solo en git (ver el `curl` a ghcr del paso 9).
+    3. Copia del volumen de dev con el contenedor **parado**, con el nombre de volumen correcto
+       —`coach-on-dev_open-webui-dev-data`— y verificarla con checksum + `integrity_check` +
+       recuento de filas. `tar tzf` solo no vale.
+    4. `git fetch upstream --tags` y `git rebase --onto vX.Y.Z <base-anterior> dev`. Con la
+       divergencia en un solo commit, esto es trivial.
+    5. Restaurar la copia en el volumen de prod y ensayar allí. Comprobar migraciones, login,
+       chats, conversación y tool calling.
+    6. Cambiar el tag en el compose del **stack 26 de Portainer** —no basta con el repo— y
+       redesplegar dev.
+    7. Verificar y anotar el resultado aquí.
+
+    Lo que hizo que esta actualización fuera aburrida: la divergencia de código es cero. Mantenerla
+    así es lo que hace que la próxima también lo sea.
 
 ---
 
@@ -491,13 +526,23 @@ Gasto por uso, no suscripción: un mes sin sesiones cuesta 0 €. Compatible con
    (`openai.api_base_urls` = `https://openrouter.ai/api/v1`, `openai.enable` = `true`). Falta
    confirmar el saldo. Dos modelos habilitados, y uno de ellos está roto:
 
-   | Modelo | Estado |
-   |---|---|
-   | `google/gemini-3.1-flash-lite-preview` | Vivo. **Soporta `tools` y `tool_choice` nativos**, así que el riesgo «Alto» de Native tool calling del §1.3 no aplica con este modelo |
-   | `x-ai/grok-4.20-multi-agent-beta` | **Ya no existe en el catálogo de OpenRouter.** Cualquier chat que lo use falla. No lo rompe la actualización: ya está roto en 0.8.10 |
+   **Modelos habilitados tras el cambio del 2026-08-17.** Se quitó el de Grok, que ya no existía
+   en el catálogo de OpenRouter y por tanto fallaba en cualquier chat que lo usara — roto desde
+   antes de la actualización, no por ella.
 
-   Ojo: que soporte herramientas no dice nada sobre adulación. La prueba de la §3.3 bis sigue
-   pendiente y sigue siendo bloqueante antes de que Marine use nada.
+   | Modelo | Contexto | USD/M entrada · salida | Sesión de 90 min | Notas |
+   |---|---|---|---|---|
+   | `deepseek/deepseek-v4-flash-0731` | 1,31 M | 0,14 · 0,28 | 0,04–0,07 USD | Instantánea **fija**. `tools` nativo |
+   | `deepseek/deepseek-v4-flash` | 1,05 M | 0,08 · 0,16 | 0,02–0,04 USD | **Alias móvil**: DeepSeek puede cambiar lo que hay detrás. `tools` nativo |
+   | `google/gemini-3.1-flash-lite-preview` | 1,05 M | 0,25 · 1,50 | 0,09–0,16 USD | El único **verificado en ejecución** en esta instancia |
+
+   Los tres salen muy por debajo del euro por sesión que estimaba la §3.7.
+
+   **Dos avisos.** Que un modelo soporte herramientas no dice **nada** sobre adulación: la prueba
+   de la §3.3 bis sigue pendiente para los tres, y sigue siendo bloqueante antes de que Marine use
+   nada. Y el alias móvil choca de frente con esa prueba — si DeepSeek cambia el modelo por debajo,
+   el que aprobaste ya no es el que responde. Es la misma lección que la etiqueta `:main`. Si hay
+   que elegir uno solo para producción, que sea el fijado.
 5. ~~**Qué se hace con los restos del tutor de inglés**~~ — ✅ resuelto: se conservan como módulo
    futuro en `docs/coach-on/modulos/ingles/`. Ver la nota del paso 10.
 6. **Añadir el VPS como dispositivo de Syncthing** con el `.stignore` limitado.
