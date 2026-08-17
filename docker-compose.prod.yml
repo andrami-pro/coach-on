@@ -1,0 +1,29 @@
+services:
+  open-webui-prod:
+    # Pinned to a release tag on purpose. Never use :main -- it is upstream's
+    # development tip, and the Alembic migrations it applies cannot be downgraded.
+    image: ghcr.io/open-webui/open-webui:v0.11.0
+    container_name: coach-on-prod
+    volumes:
+      - open-webui-prod-data:/app/backend/data
+    environment:
+      # Must be set in the stack environment. Starting with an empty key
+      # invalidates every existing session and API token.
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:?WEBUI_SECRET_KEY must be set}
+      - WEBUI_NAME=Coach-On
+      - VIRTUAL_HOST=coach-on.andrami.pro
+      - VIRTUAL_PORT=8080
+      - LETSENCRYPT_HOST=coach-on.andrami.pro
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+    networks:
+      - nginx_proxy
+      - default
+
+networks:
+  nginx_proxy:
+    external: true
+
+volumes:
+  open-webui-prod-data: {}
