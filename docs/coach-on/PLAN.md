@@ -235,7 +235,22 @@ no figure en `~/.ssh/config`. No hace falta túnel.
     > en cada rebase.
 11. `git push --force-with-lease origin dev`.
 
-**Bloque C — Ensayo en el slot prod (reversible) · ⬜ pendiente**
+**Bloque C — Ensayo en el slot prod (reversible) · 🟡 automatizable hecho, falta verificación humana**
+
+> **Resultado del ensayo del 2026-08-17.** v0.11.0 arrancó sobre una copia de los datos reales y
+> **aplicó exactamente 21 migraciones**, de `b2c3d4e5f6a7` a `f0bd01a18a3d`, sin un solo error en
+> los logs. Después: `/api/version` devuelve `0.11.0`, contenedor `healthy`,
+> `PRAGMA integrity_check` = `ok`, y **el usuario y los 8 chats siguen ahí**. La migración
+> `3ff2c63645b8, reshape config to per key rows` reescribe la tabla `config` entera y pasó limpia.
+>
+> El ensayo se levantó **sin publicar**: sin `VIRTUAL_HOST`, sin `LETSENCRYPT_HOST`, fuera de la
+> red `nginx_proxy`, atado a `127.0.0.1:8081` del VPS y con su propia `WEBUI_SECRET_KEY`. No se
+> emitió ningún certificado y `coach-on.andrami.pro` sigue sin resolver a nada. Probar las
+> migraciones no requiere exponer los datos a internet; el camino nginx-proxy + certificado ya
+> está demostrado por dev.
+>
+> Archivos del ensayo en `/root/coach-on-rehearsal/` del VPS. Para volver a entrar:
+> `ssh -N -L 8081:127.0.0.1:8081 root@145.223.34.108` y abrir `http://localhost:8081`.
 
 > **El slot prod no existe.** Hay que crearlo, no restaurarlo. Ver la corrección de la §1.2c.
 
@@ -425,7 +440,17 @@ Gasto por uso, no suscripción: un mes sin sesiones cuesta 0 €. Compatible con
    al 96 % (6,2 GB libres) y el archivo ocupa 971 MB.
 3. **Confirmación explícita del Bloque D**, con el resultado del ensayo delante. ⬜ **Pendiente.**
    Sigue siendo el requisito que no se salta.
-4. **Qué API está contratada** (OpenAI directa u OpenRouter) y con qué saldo. ⬜ Pendiente, es de Fase 2.
+4. ~~**Qué API está contratada**~~ — ✅ **OpenRouter**, ya configurado en la instancia
+   (`openai.api_base_urls` = `https://openrouter.ai/api/v1`, `openai.enable` = `true`). Falta
+   confirmar el saldo. Dos modelos habilitados, y uno de ellos está roto:
+
+   | Modelo | Estado |
+   |---|---|
+   | `google/gemini-3.1-flash-lite-preview` | Vivo. **Soporta `tools` y `tool_choice` nativos**, así que el riesgo «Alto» de Native tool calling del §1.3 no aplica con este modelo |
+   | `x-ai/grok-4.20-multi-agent-beta` | **Ya no existe en el catálogo de OpenRouter.** Cualquier chat que lo use falla. No lo rompe la actualización: ya está roto en 0.8.10 |
+
+   Ojo: que soporte herramientas no dice nada sobre adulación. La prueba de la §3.3 bis sigue
+   pendiente y sigue siendo bloqueante antes de que Marine use nada.
 5. ~~**Qué se hace con los restos del tutor de inglés**~~ — ✅ resuelto: se conservan como módulo
    futuro en `docs/coach-on/modulos/ingles/`. Ver la nota del paso 10.
 6. **Añadir el VPS como dispositivo de Syncthing** con el `.stignore` limitado.
