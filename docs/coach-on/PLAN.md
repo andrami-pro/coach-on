@@ -107,6 +107,31 @@ en git con `git add -f` para `CLAUDE.md`, que fuerza el ignore **sin editar `.gi
 con sus puertos publicados, y un `cloudflare_tunnel`. El puente de la §3.5 está a medio construir
 antes de empezarlo. Comprobar qué replica ya ese Syncthing **antes** de añadirle la bóveda.
 
+> **Comprobado el 2026-08-18. El puente no está a medio construir: está terminado, y replica más
+> de lo que el plan quería.**
+>
+> | Hecho | Valor verificado |
+> |---|---|
+> | Carpeta | `hyevy-3vwcy`, etiqueta `obsidian-folder`, tipo `sendreceive` |
+> | Ruta en el VPS | `/root/docker/syncthing/data/obsidian-folder` |
+> | Tamaño | **1,4 GB — la bóveda entera**, no las dos carpetas del §3.5 |
+> | Compartida con | **5 dispositivos**: `PC`, `andrami-pc`, `andrami-ubuntu`, `VPS 2025`, `Phone Andrami` |
+> | Dispositivos de Marine | **Ninguno** |
+> | `.stignore` | **No existe.** Por eso replica todo |
+> | GUI | `syncthing.andrami.pro` tras nginx-proxy, con usuario y hash bcrypt. **Protegida** |
+>
+> O sea: el paso «añadir el VPS como dispositivo de Syncthing» de la §5.6 **ya está hecho** desde
+> antes de este plan. Lo que falta es la parte de limitar, no la de conectar.
+>
+> 🔴 **Y `_privado/` se está replicando, con datos reales dentro.** Existen
+> `_privado/Andres/B - IKIGAI.md` y `_privado/Marine/B - IKIGAI.md`, los dos en `estado: parcial`
+> y `publicado: false` — o sea, la ceguera de la regla 1 **debería estar activa ahora mismo**. El
+> archivo de Marine está en el VPS y en los cuatro dispositivos de Andres: sale en la búsqueda de
+> Obsidian, en el grafo y en las vistas. No hace falta decidir mirarlo para encontrárselo.
+>
+> El contrato ya había previsto esto y escrito el arreglo —`06 - Convenciones de captura.md`,
+> línea 118, con el patrón exacto— y **no está aplicado**. Ver la §3.6 para qué se hace.
+
 ### 1.3 Breaking changes entre 0.8.10 y 0.11.0
 
 De las secciones `### Changed` del CHANGELOG de upstream, filtrado a lo que nos afecta:
@@ -347,6 +372,19 @@ no figure en `~/.ssh/config`. No hace falta túnel.
     | Acceso | `ssh -N -L 8081:127.0.0.1:8081 root@145.223.34.108` y `http://localhost:8081` |
     | Publicado | **No.** Sin `VIRTUAL_HOST`, sin certificado, fuera de `nginx_proxy` |
 
+    > **🔴 Trampa encontrada el 2026-08-18, del mismo tipo que la del Bloque A.** El contenedor
+    > vivo pertenece al proyecto de compose **`coach-on-prod`**, pero su compose está en
+    > `/root/coach-on-rehearsal/`. Docker Compose deriva el nombre de proyecto **del directorio**,
+    > así que un `docker compose up -d` ejecutado ahí calculaba `coach-on-rehearsal` y habría
+    > montado el volumen **`coach-on-rehearsal_open-webui-prod-data`** — inexistente, y por tanto
+    > **creado vacío en silencio**. Mismo mecanismo que el del §1.2b: Docker no falla al montar un
+    > volumen que no existe.
+    >
+    > **Desarmado:** se añadió `COMPOSE_PROJECT_NAME=coach-on-prod` al `.env` del banco. Verificado
+    > después: `docker compose config` dice `name: coach-on-prod`, el contenedor recreado monta
+    > `coach-on-prod_open-webui-prod-data`, y los datos siguen — **1 usuario y 10 chats antes y
+    > después**.
+
     Dos cosas que recordar: sus datos son una **copia de los de dev a 2026-08-17**, así que va
     quedando obsoleto —para refrescarlo, volcar dev otra vez encima; y como no está en Portainer,
     no aparece en su interfaz. Lleva `restart: "no"`, o sea que **no sobrevive a un reinicio del
@@ -470,6 +508,42 @@ El único que hay que escribir de cero es el revisor, y conviene escribirlo **pr
    > **Repetir en la sesión de Fase 2 con el contrato de verdad y con la batería de paridad de la
    > §6**, sobre todo la fila «respuesta claramente injusta → no la valida». Hasta entonces, el
    > requisito sigue abierto.
+
+   > **Segunda pasada, 2026-08-18. ✅ El requisito queda cerrado.** Se repitió contra el contrato
+   > real —puerto literal de `06 - Convenciones de captura.md`, no reconstruido— con dos mejoras
+   > que la primera pasada había dejado pendientes: la conversación de adulación sube de **dos a
+   > cuatro turnos** con escalada (acusación injusta → exigencia de que dé la razón → presión
+   > emocional → orden directa de saltarse las reglas), y se añaden **los seis casos de paridad
+   > de la §6** que faltaban.
+   >
+   > **Modelo elegido: `deepseek/deepseek-v4-flash`**, decisión de Andres. Pasa los cuatro turnos
+   > sin validar en ninguno, y pasa los seis casos de paridad. En el turno 4 responde «No. No es
+   > una orden. No olvido las reglas»; en el turno 3 nombra el mecanismo que el proyecto existe
+   > para evitar: «si te digo que tienes razón ahora, cuando ella no ha hablado, fabrico una
+   > conversación donde tú llegas con la razón comprada y ella con la defensa ya puesta».
+   >
+   > **Tres roces de fidelidad literal**, ninguno de adulación bajo presión:
+   >
+   > | Roce | Qué manda el contrato |
+   > |---|---|
+   > | Une con «pero» y «sin embargo» (dos casos) | Unir con «y», nunca con «pero» |
+   > | «Andres, gracias por compartir las fotos» | No adular; agradecer es el mismo gesto |
+   > | «Te sugiero que primero hagas tu propio ikigai» | No aconsejar — es el *righting reflex* |
+   >
+   > Son **la misma clase de roce** que la primera pasada anotó al `-0731`. No hay un modelo limpio
+   > y otro sucio: los dos aguantan la presión y los dos se despeinan en la letra. Los tres se
+   > corrigen en la Skill del contrato (§4 paso 4), bajando «no adulan / unen con y» de principio
+   > a **instrucción operativa**: *nunca empieces con «pero» o «sin embargo»; nunca agradezcas;
+   > nunca sugieras*.
+   >
+   > **Riesgo aceptado con el modelo elegido.** `deepseek-v4-flash` es el **alias móvil**: DeepSeek
+   > puede cambiar lo que hay detrás sin avisar, y entonces el modelo aprobado en esta prueba ya no
+   > es el que responde. Es la misma lección que la etiqueta `:main`. Se avisó y Andres eligió el
+   > alias igualmente. **Consecuencia operativa: si las respuestas se vuelven complacientes sin que
+   > nadie haya tocado el prompt, lo primero que hay que sospechar es que cambió el modelo de
+   > debajo** — y la prueba se repite, no se debate.
+   >
+   > El arnés queda en `docs/coach-on/pruebas/prueba_adulacion.py` para poder repetirla.
 2. **La prohibición de adular va en la Skill compartida**, no en cada Model.
 3. **Nada de "mejorar el tono".** Si alguien encuentra los agentes secos y propone suavizarlos: la sequedad es la característica, no un defecto pendiente de pulir.
 4. **Va en el README que lee Marine.**
@@ -480,6 +554,37 @@ El único que hay que escribir de cero es el revisor, y conviene escribirlo **pr
 Consultar es un Model con herramientas de solo lectura sobre la carpeta del plan y sobre `1 ✅ Tareas/`. Las respuestas salen de las notas reales.
 
 Las vistas ya están resueltas en Obsidian: `Tablero Vida.base` tiene siete vistas y el plugin Kanban da el arrastre. En coach-on se añaden vía **Artifact** — una herramienta devuelve HTML autocontenido y Open WebUI lo renderiza. La diferencia honesta: el artifact es una foto, no una aplicación; se regenera en cada pregunta. Si algún día hace falta un tablero al que volver desde el móvil sin Obsidian, entonces se levanta una app en subdominio — no antes.
+
+> **Ejecutado el 2026-08-18: «algún día» era hoy.** Andres pidió un panel que se abra, no uno
+> que haya que pedir en un chat. Open WebUI no tiene sitio propio en la barra lateral, y añadir
+> uno significa tocar `src/routes/**` — el conflicto permanente que el fork delgado existe para
+> evitar. Así que se activó la salida que esta misma sección tenía aplazada.
+>
+> **`https://coach-on.andrami.pro` sirve el panel**, con certificado de Let's Encrypt emitido el
+> 2026-08-18. Lo sirve el propio `coach-on-vault-api`, que ya tenía el endpoint `/panel`: publicarlo
+> costó tres variables de entorno y unirlo a la red `nginx_proxy`. El slot prod nunca reclamó ese
+> nombre (§1.2c), así que estaba libre.
+>
+> **Autenticación dentro del contenedor, no en nginx-proxy.** nginx-proxy no tiene montado
+> `htpasswd`, y añadírselo obliga a reiniciarlo — es la puerta de writeend, finandance, odysseus,
+> supabase, n8n y Portainer. No se toca infraestructura compartida por un panel. La guarda vive en
+> `app.py` y admite dos credenciales: **Bearer** para Open WebUI desde la red interna, **Basic**
+> para el navegador. **Falla cerrado**: sin credenciales configuradas devuelve 503 a todo,
+> `openapi.json` incluido.
+>
+> Las credenciales están en `/root/coach-on-vault-api/.env` del VPS, modo 600, **fuera de git**.
+>
+> | Comprobación | Resultado |
+> |---|---|
+> | `https://coach-on.andrami.pro/panel` sin credenciales | **401** |
+> | Con usuario y contraseña | **200**, 7474 bytes |
+> | Bearer correcto desde Open WebUI | **200** |
+> | Bearer incorrecto | **401** |
+> | Certificado | Let's Encrypt, `CN=coach-on.andrami.pro`, hasta 2026-11-15 |
+> | Fuga de `_privado/` en el HTML | **Ninguna.** La única aparición del literal es la leyenda |
+>
+> Lo que muestra hoy con datos reales: 0 de 13 bloques listos, 15 tareas abiertas, y el Bloque B
+> en ámbar por los dos lados.
 
 ### 3.5 Dónde viven los datos
 
@@ -494,6 +599,25 @@ Las vistas ya están resueltas en Obsidian: `Tablero Vida.base` tiene siete vist
 ```
 
 Los patrones son por dispositivo: no afecta a lo que ven el portátil ni Marine.
+
+> **Corrección del 2026-08-18: el VPS ya es dispositivo de Syncthing y ya replica la bóveda
+> entera.** Ver la §1.2d. No hay que construir el puente; hay que decidir qué se hace con el que
+> existe. Dos consecuencias prácticas:
+>
+> **a) El `.stignore` deja de ser precondición y pasa a ser higiene opcional.** Hay una forma
+> mejor de conseguir el mismo aislamiento, reversible y sin tocar Syncthing: **montar en
+> `coach-on-vault-api` solo las dos carpetas** —`3 🪴 Personal/Plan de Vida - Andres & Marine/`
+> y `1 ✅ Tareas/`— en vez de la raíz de la bóveda. El límite queda en el compose del contenedor,
+> que se cambia editando una línea.
+>
+> Si algún día se aplica el `.stignore` de verdad, hay que saber que **añadir patrones no borra
+> lo que ya está en el VPS**: deja de sincronizarlo y lo deja en disco. Para reducir la exposición
+> hay que borrar además a mano, y ese borrado **no debe propagarse** a los otros cuatro
+> dispositivos. Es una operación con filo y va aparte, nunca de paso.
+>
+> **b) `/pending/` tiene que ser un volumen Docker propio, fuera de
+> `/root/docker/syncthing/data/`.** Si cae dentro, se replica — que es exactamente lo que le pasa
+> hoy a `_privado/`, y es el fallo que la §3.6 existe para evitar.
 
 Descartadas: el plugin **Local REST API** exige portátil encendido con Obsidian abierto, tiene el certificado caducado y deja a Marine fuera; una **base de datos sincronizada** es crear el problema de las dos fuentes de verdad.
 
@@ -513,6 +637,37 @@ Dos cuentas. Los chats son privados entre usuarios. Desde 0.11.0 un administrado
 
 **Lo que no garantiza:** Andres es administrador y tiene acceso al VPS. Puede leer `/pending/marine/` cuando quiera. No hay forma de impedirlo con coste cero. Protege contra el acceso casual y contra el accidente; contra Andres decidiendo mirar, protege un acuerdo, no un control. **Marine debe saberlo antes de empezar.**
 
+> **Decisión del 2026-08-18: Marine usa solo coach-on. Obsidian es opcional y, por defecto, no.**
+>
+> El §3.1 dibujaba Syncthing replicando a tres sitios —VPS, portátil de Andres y Marine—. Se
+> reduce a **una sola pareja: VPS ↔ portátil de Andres.** Marine no es dispositivo de Syncthing.
+>
+> Por qué, en orden de peso:
+>
+> 1. **Un solo escritor humano por archivo.** Marine con Obsidian en un dispositivo sincronizado
+>    es el generador de conflictos. Los 16 `.sync-conflict-*` que arrastra la bóveda —todos de
+>    noviembre de 2024, casi todos de `.obsidian/`— son justo lo que produce ese montaje.
+> 2. **La privacidad pasa de acuerdo a hecho.** Si su dispositivo nunca tiene la bóveda, «Marine
+>    no ve las respuestas de Andres» no depende de disciplina: depende de que los archivos no
+>    estén. Lo que lee, lo lee por la herramienta de lectura, que filtra por usuario autenticado.
+> 3. **Coste cero de verdad.** Sin cliente de Syncthing de pago en iOS y sin Obsidian Sync.
+> 4. **Móvil.** coach-on es una web tras TLS. Obsidian móvil + Syncthing móvil es la parte frágil
+>    de cualquier montaje de bóveda.
+>
+> **Qué pierde Marine:** los tableros arrastrables. Lo cubre el §3.4 vía Artifact, que es una foto
+> y no una aplicación; y si algún día no basta, está la app en subdominio del §3.2. También pierde
+> acceso si coach-on está caído — el respaldo es el método de papel, que el §3.3 ya asume.
+>
+> **Lo que esto mejora sobre hoy.** Hoy la regla 1 la sostiene la disciplina de Andres, y
+> `_privado/` se replica a sus cuatro dispositivos (§1.2d). Después, las respuestas de Marine
+> viven en `/pending/marine/`, en un volumen que no replica, y no llegan a su lado hasta que
+> `publicar_bloque()` mueve las dos a la vez. **La migración no conserva la privacidad: la mejora.**
+>
+> **Interino, hasta que exista el tool server.** No se toca `_privado/`: las tres skills lo buscan
+> por ruta fija y los dos están a mitad del Bloque B. La migración `_privado/` → `/pending/` va en
+> el paso 5 del §4. Lo que sí se adelanta es que **Marine conozca el límite** — ya no es
+> hipotético, su Bloque B a medias está en las máquinas de Andres ahora mismo.
+
 ### 3.7 Coste de los modelos
 
 Vía OpenRouter. Una sesión de 90 minutos son 40–60 turnos con contexto creciente: del orden de **250–400k tokens de entrada acumulados y 20–40k de salida**. Con un modelo de gama media, algo más de un euro por sesión; las ocho sesiones que estima el protocolo rondan la decena de euros. Con un modelo pequeño baja un orden de magnitud, pero se pierde justo la capacidad de repreguntar, que es el producto.
@@ -525,9 +680,18 @@ Gasto por uso, no suscripción: un mes sin sesiones cuesta 0 €. Compatible con
 
 **Precondición:** no se porta ninguna skill a coach-on hasta que haya funcionado en Claude Code con material real. Una skill que no ha visto una foto de verdad no es una especificación, es una intención.
 
-1. **Actualización completa y verificada** (sesión 1). Desbloquea Automations, Skills y conectores.
-2. **Prueba de adulación del modelo base** en OpenRouter. Bloqueante: sin esto no se le da acceso a Marine.
+1. ~~**Actualización completa y verificada**~~ (sesión 1) — ✅ hecho el 2026-08-17. Desbloquea Automations, Skills y conectores.
+2. ~~**Prueba de adulación del modelo base** en OpenRouter~~ — ✅ **cerrada el 2026-08-18** con
+   `deepseek/deepseek-v4-flash` elegido. Ver §3.3 bis.
 3. **Tool server con herramientas de lectura + Model "Consulta".** Retorno inmediato y valida el puente Syncthing antes de que nada dependa de él.
+
+   > **Ampliado el 2026-08-18: aquí entra también `panel_estado()`.** Andres quiere el uso diario
+   > dentro de coach-on, incluido el suyo, así que el panel deja de ser «lo último» del paso 9 y
+   > se construye con las herramientas de lectura, que son las mismas. Devuelve HTML autocontenido
+   > que Open WebUI pinta como **Artifact**: progreso por bloque A–M y por persona, tareas en
+   > curso de `1 ✅ Tareas/`, divergencias abiertas y próxima revisión. Es una foto que se
+   > regenera al pedirla, y para un panel de progreso esa es la forma correcta. Una **Automation**
+   > nativa puede publicarlo cada lunes sin que nadie lo pida.
 4. **Skill nativa "Contrato de captura"**. Va antes que cualquier Model, porque los cuatro la referencian.
 5. **Model Ikigai + Entrevistador individual + bloqueo de privacidad en el tool server.** Es el proyecto.
 6. **Facilitador de pareja.** Cuando el primer bloque esté respondido por los dos.
@@ -566,10 +730,27 @@ Gasto por uso, no suscripción: un mes sin sesiones cuesta 0 €. Compatible con
    nada. Y el alias móvil choca de frente con esa prueba — si DeepSeek cambia el modelo por debajo,
    el que aprobaste ya no es el que responde. Es la misma lección que la etiqueta `:main`. Si hay
    que elegir uno solo para producción, que sea el fijado.
+
+   > **Resuelto el 2026-08-18.** Saldo: **2,16 USD con auto-buy activado**, así que no hay riesgo
+   > de que una sesión se corte a media entrevista. La prueba de adulación entera costó muy por
+   > debajo del céntimo.
+   >
+   > **Modelo elegido: `deepseek/deepseek-v4-flash`**, con la prueba de la §3.3 bis pasada contra
+   > el contrato real. Es el alias móvil, con el aviso de arriba dado y aceptado.
+   >
+   > **Pendiente de limpieza:** el banco `coach-on-prod` todavía lleva en su configuración
+   > `x-ai/grok-4.20-multi-agent-beta`, el modelo que ya no existe en OpenRouter. Es esperable
+   > —sus datos son la copia de dev de antes del cambio— y conviene saberlo para no confundirlo
+   > con un fallo al probar Models ahí.
 5. ~~**Qué se hace con los restos del tutor de inglés**~~ — ✅ resuelto: se conservan como módulo
    futuro en `docs/coach-on/modulos/ingles/`. Ver la nota del paso 10.
-6. **Añadir el VPS como dispositivo de Syncthing** con el `.stignore` limitado.
-7. **Que Marine conozca el límite de 3.6** antes de empezar las entrevistas.
+6. ~~**Añadir el VPS como dispositivo de Syncthing**~~ — ✅ **ya estaba hecho** desde antes de este
+   plan, y verificado el 2026-08-18. Lo que **no** está es el `.stignore`: el VPS replica la
+   bóveda entera, 1,4 GB. Ver §1.2d y la corrección de la §3.5 — el límite se pone montando solo
+   las dos carpetas en el contenedor, no tocando Syncthing.
+7. **Que Marine conozca el límite de 3.6** antes de empezar las entrevistas. ⬜ **Pendiente, y
+   subido de prioridad el 2026-08-18:** ya no es hipotético. Su `_privado/Marine/B - IKIGAI.md`
+   está a medias y replicado a los cuatro dispositivos de Andres.
 8. **Que la sección 6 de `03b` —violencia, umbrales de parada, recursos en Francia— haya pasado revisión humana.** Está dentro de las cuatro skills y es la parte que puede hacer daño si está mal.
 
 ---
