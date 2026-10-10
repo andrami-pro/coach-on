@@ -21,8 +21,9 @@ Corolarios:
 
 ## Despliegue
 
-- VPS **145.223.34.108**. Dominios `coach-on.andrami.pro` y `dev.coach-on.andrami.pro` detrás de nginx-proxy.
-- La instancia viva es **dev**; el slot **prod** no sirve y se usa como banco de pruebas.
+- VPS **145.223.34.108**, detrás de nginx-proxy.
+- **La instancia viva se sirve en `coach-on.andrami.pro`** (y `dev.coach-on.andrami.pro` como alias), pero por dentro se sigue llamando **dev**: contenedor `coach-on-dev`, stack 26, `docker-compose.dev.yml`. Los nombres internos no se renombran: renombrar el volumen es como se acaba montando uno vacío.
+- El slot **prod** (`coach-on-prod`) no está publicado: es el banco de pruebas, por túnel a `127.0.0.1:8081`.
 - El despliegue va por un **stack de Portainer** (el 26), cuyo compose es una copia estática sin `.git`. Un `git push` **no** actualiza el VPS: el cambio hay que aplicarlo también en Portainer.
 - Los datos están en un volumen Docker, **no** en `backend/data/` de este repo, que está vacío. El volumen se llama **`coach-on-dev_open-webui-dev-data`** — con el prefijo del proyecto. `open-webui-dev-data` a secas **no existe**, y montar ese nombre no falla: Docker crea uno vacío, que es como se hace una copia de seguridad vacía sin enterarse. El de prod no existe todavía.
 - La imagen va **fijada a un tag de versión**, nunca a `:main`. `:main` es la punta de desarrollo de upstream: un `pull` en mal día rompe la instancia y las migraciones no tienen downgrade.

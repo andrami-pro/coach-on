@@ -2,7 +2,7 @@ services:
   open-webui-prod:
     # Pinned to a release tag on purpose. Never use :main -- it is upstream's
     # development tip, and the Alembic migrations it applies cannot be downgraded.
-    image: ghcr.io/open-webui/open-webui:v0.11.0
+    image: ghcr.io/open-webui/open-webui:v0.11.4
     container_name: coach-on-prod
     volumes:
       - open-webui-prod-data:/app/backend/data

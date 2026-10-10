@@ -4,6 +4,9 @@
 ejecutados. **dev corre v0.11.0** con sus datos intactos. La Fase 2 —la sección 3 en adelante— no
 se ha empezado.
 
+> **Actualizado el 2026-10-10:** la instancia viva corre **v0.11.4** y se sirve en
+> **`https://coach-on.andrami.pro`**. Ver «Segunda actualización» al final del Bloque E.
+
 > **Este documento se verificó contra la realidad el 2026-08-17 y varias afirmaciones eran
 > falsas.** Las correcciones están marcadas en línea. La más grave: el comando de copia de
 > seguridad del Bloque A nombraba un volumen que no existe, y Docker crea en silencio un
@@ -410,6 +413,49 @@ no figure en `~/.ssh/config`. No hace falta túnel.
     Lo que hizo que esta actualización fuera aburrida: la divergencia de código es cero. Mantenerla
     así es lo que hace que la próxima también lo sea.
 
+**Segunda actualización — v0.11.0 → v0.11.4, ejecutada el 2026-10-10 · ✅**
+
+El procedimiento de arriba, rodado por segunda vez, y aprovechado para que la instancia viva deje
+de llamarse «dev» hacia fuera.
+
+| Paso | Resultado |
+|---|---|
+| CHANGELOG 0.11.1 → 0.11.4 | Nada que nos rompa. Lo que toca: los enlaces `obsidian://` ya no se pintan como enlace (importa en la Fase 2 si un agente los genera); los IDs de Model con espacios ya no se guardan (no tenemos ninguno); salen de la imagen paquetes no declarados (no tenemos Functions ni Tools) |
+| Imagen en el registro | `v0.11.4` → 200 en ghcr |
+| Migraciones | **3**, en cadena desde `f0bd01a18a3d`: índice en `group_member`, reparación de `oauth` doble codificado, `timer_at` e índices en `chat`. Nueva cabeza `d4c1a8e37b62` |
+| Copia 1 | `coach-on-dev-data-2026-10-09-pre-0.11.4.tar.gz`, en el VPS y en `~/backups/` del portátil. `sha256` idéntico en los dos lados, `integrity_check` = ok, 1 usuario y 9 chats |
+| Rebase | `git rebase --onto v0.11.4 v0.11.0 dev`, cero conflictos. Rama `backup/pre-upgrade-2026-10-09` antes de tocar nada |
+| Ensayo en el banco | Copia 1 restaurada en `coach-on-prod_open-webui-prod-data`, arranque con v0.11.4: 3 migraciones sin error, `healthy`, 1 usuario y 9 chats. **Andres eligió no hacer la comprobación en el navegador**; el ensayo se dio por bueno con la verificación a nivel de base |
+| Copia 2, con dev parado | `coach-on-dev-data-2026-10-10-preD-0.11.4.tar.gz`, en el VPS, verificada antes de seguir: ok, 1 usuario, 9 chats |
+| Despliegue | Compose del stack 26 editado en su directorio de Portainer y levantado con `docker compose -p coach-on-dev -f docker-compose.dev.yml --env-file stack.env up -d`. Copias del compose anterior en `docker-compose.{dev,prod}.yml.pre-0.11.4` del mismo directorio |
+| Verificación | `/api/version` = `0.11.4` en los dos dominios, `healthy`, `integrity_check` = ok, 1 usuario y 9 chats |
+
+**Dominio: la instancia viva pasa a `coach-on.andrami.pro`.** Mismo contenedor y mismo volumen;
+solo cambian `VIRTUAL_HOST` y `LETSENCRYPT_HOST`, que ahora llevan los dos nombres. El certificado
+de Let's Encrypt cubre `coach-on.andrami.pro` y `dev.coach-on.andrami.pro` hasta 2027-01-08.
+`dev.coach-on` se mantiene como alias para no romper marcadores; quitarlo es borrarlo de esas dos
+variables. `WEBUI_NAME` pasa de «Coach-On Dev» a «Coach-On».
+
+**El contenedor y el volumen siguen llamándose `coach-on-dev`** a propósito. Son nombres internos,
+y renombrar el volumen es exactamente la operación que acaba montando uno vacío (§1.2b). El nombre
+engaña; los datos no.
+
+> **Corrección al §3.4:** el panel **no** estaba publicado en `coach-on.andrami.pro`. Verificado
+> el 2026-10-10: el compose de `coach-on-vault-api` en el VPS tiene el bloque de nginx-proxy
+> comentado y solo escucha en `127.0.0.1:8082`. El dominio estaba libre, y ahora es la app. **Si
+> el panel se publica, necesita otro subdominio** —por ejemplo `panel.coach-on.andrami.pro`, que
+> hoy no tiene registro DNS— y hay que cambiar `PANEL_URL` en `loader.js`.
+
+Tres cosas que dejó esta pasada:
+
+- **El `docker-compose.prod.yml` del directorio del stack 26 todavía decía `:main`.** No estaba
+  desplegado, pero era un `:main` armado dentro de Portainer. Ahora dice `v0.11.4`.
+- **El `ERROR ... Read-only file system: .../static/loader.js`** que sale al arrancar el banco es
+  esperado: upstream intenta copiar su `loader.js` vacío encima del nuestro, el montaje `:ro` lo
+  impide y se sirve el nuestro. El mismo código está en v0.11.0.
+- **Una copia con dev parado tarda ~8 min**, no los ~2 de agosto: el VPS anda con load 7–17 por
+  otros servicios. La caída de la actualización fue de unos 10 minutos.
+
 ---
 
 ## 3. Arquitectura — Sesión 2
@@ -559,6 +605,9 @@ Las vistas ya están resueltas en Obsidian: `Tablero Vida.base` tiene siete vist
 > que haya que pedir en un chat. Open WebUI no tiene sitio propio en la barra lateral, y añadir
 > uno significa tocar `src/routes/**` — el conflicto permanente que el fork delgado existe para
 > evitar. Así que se activó la salida que esta misma sección tenía aplazada.
+>
+> ⚠️ **Falso a 2026-10-10** — ver la corrección en «Segunda actualización», Bloque E. Ese dominio
+> sirve ahora Open WebUI y el panel sigue sin publicar.
 >
 > **`https://coach-on.andrami.pro` sirve el panel**, con certificado de Let's Encrypt emitido el
 > 2026-08-18. Lo sirve el propio `coach-on-vault-api`, que ya tenía el endpoint `/panel`: publicarlo
